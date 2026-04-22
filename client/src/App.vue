@@ -1,42 +1,90 @@
 <template>
-  <div class="app">
-    <header class="top-nav">
-      <div class="nav-container">
-        <div class="logo">
-          <h1>{{ t('nav.companyName') }}</h1>
-          <span class="subtitle">{{ t('nav.subtitle') }}</span>
+  <div class="app-layout">
+    <aside class="sidebar" :class="{ 'sidebar-open': sidebarOpen }">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="logo-icon">F</div>
+          <div class="logo-text">
+            <h1>{{ t('nav.companyName') }}</h1>
+            <span class="logo-subtitle">{{ t('nav.subtitle') }}</span>
+          </div>
         </div>
-        <nav class="nav-tabs">
-          <router-link to="/" :class="{ active: $route.path === '/' }">
-            {{ t('nav.overview') }}
-          </router-link>
-          <router-link to="/inventory" :class="{ active: $route.path === '/inventory' }">
-            {{ t('nav.inventory') }}
-          </router-link>
-          <router-link to="/orders" :class="{ active: $route.path === '/orders' }">
-            {{ t('nav.orders') }}
-          </router-link>
-          <router-link to="/spending" :class="{ active: $route.path === '/spending' }">
-            {{ t('nav.finance') }}
-          </router-link>
-          <router-link to="/demand" :class="{ active: $route.path === '/demand' }">
-            {{ t('nav.demandForecast') }}
-          </router-link>
-          <router-link to="/reports" :class="{ active: $route.path === '/reports' }">
-            Reports
-          </router-link>
-        </nav>
+      </div>
+
+      <nav class="sidebar-nav">
+        <router-link to="/" class="nav-item" :class="{ active: $route.path === '/' }">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="2" width="7" height="7" rx="1.5"/>
+            <rect x="11" y="2" width="7" height="4" rx="1.5"/>
+            <rect x="2" y="11" width="7" height="7" rx="1.5"/>
+            <rect x="11" y="8" width="7" height="10" rx="1.5"/>
+          </svg>
+          <span class="nav-label">{{ t('nav.overview') }}</span>
+        </router-link>
+        <router-link to="/inventory" class="nav-item" :class="{ active: $route.path === '/inventory' }">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M2 6l8-4 8 4-8 4-8-4z"/>
+            <path d="M2 10l8 4 8-4"/>
+            <path d="M2 14l8 4 8-4"/>
+          </svg>
+          <span class="nav-label">{{ t('nav.inventory') }}</span>
+        </router-link>
+        <router-link to="/orders" class="nav-item" :class="{ active: $route.path === '/orders' }">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="4" y="2" width="12" height="16" rx="2"/>
+            <path d="M7 6h6M7 10h6M7 14h3"/>
+          </svg>
+          <span class="nav-label">{{ t('nav.orders') }}</span>
+        </router-link>
+        <router-link to="/spending" class="nav-item" :class="{ active: $route.path === '/spending' }">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M10 2v16M6 6c0-1.5 1.5-2.5 4-2.5s4 1 4 2.5-1.5 2.5-4 3-4 1.5-4 3 1.5 2.5 4 2.5 4-1 4-2.5"/>
+          </svg>
+          <span class="nav-label">{{ t('nav.finance') }}</span>
+        </router-link>
+        <router-link to="/demand" class="nav-item" :class="{ active: $route.path === '/demand' }">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M2 16l5-5 3 3 8-10"/>
+            <path d="M14 4h4v4"/>
+          </svg>
+          <span class="nav-label">{{ t('nav.demandForecast') }}</span>
+        </router-link>
+        <router-link to="/reports" class="nav-item" :class="{ active: $route.path === '/reports' }">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="10" width="3" height="8" rx="1"/>
+            <rect x="7" y="6" width="3" height="12" rx="1"/>
+            <rect x="12" y="2" width="3" height="16" rx="1"/>
+          </svg>
+          <span class="nav-label">Reports</span>
+        </router-link>
+      </nav>
+
+      <div class="sidebar-footer">
         <LanguageSwitcher />
+        <div class="sidebar-divider"></div>
         <ProfileMenu
           @show-profile-details="showProfileDetails = true"
           @show-tasks="showTasks = true"
         />
       </div>
-    </header>
-    <FilterBar />
-    <main class="main-content">
-      <router-view />
-    </main>
+    </aside>
+
+    <div v-if="sidebarOpen" class="sidebar-backdrop" @click="sidebarOpen = false"></div>
+
+    <div class="main-area">
+      <header class="top-header">
+        <button class="hamburger-btn" @click="toggleSidebar">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 5h14M3 10h14M3 15h14"/>
+          </svg>
+        </button>
+        <h2 class="header-title">{{ pageTitle }}</h2>
+      </header>
+      <FilterBar />
+      <main class="main-content">
+        <router-view />
+      </main>
+    </div>
 
     <ProfileDetailsModal
       :is-open="showProfileDetails"
@@ -56,6 +104,7 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { api } from './api'
 import { useAuth } from './composables/useAuth'
 import { useI18n } from './composables/useI18n'
@@ -80,6 +129,24 @@ export default {
     const showProfileDetails = ref(false)
     const showTasks = ref(false)
     const apiTasks = ref([])
+
+    const route = useRoute()
+    const pageTitle = computed(() => {
+      const titles = {
+        '/': t('nav.overview'),
+        '/inventory': t('nav.inventory'),
+        '/orders': t('nav.orders'),
+        '/spending': t('nav.finance'),
+        '/demand': t('nav.demandForecast'),
+        '/reports': 'Reports'
+      }
+      return titles[route.path] || ''
+    })
+
+    const sidebarOpen = ref(false)
+    const toggleSidebar = () => {
+      sidebarOpen.value = !sidebarOpen.value
+    }
 
     // Merge mock tasks from currentUser with API tasks
     const tasks = computed(() => {
@@ -155,13 +222,79 @@ export default {
       tasks,
       addTask,
       deleteTask,
-      toggleTask
+      toggleTask,
+      pageTitle,
+      sidebarOpen,
+      toggleSidebar
     }
   }
 }
 </script>
 
 <style>
+:root {
+  /* Sidebar */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 68px;
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #94a3b8;
+  --sidebar-text-hover: #f1f5f9;
+  --sidebar-text-active: #ffffff;
+  --sidebar-active-bg: rgba(59, 130, 246, 0.15);
+  --sidebar-active-border: #3b82f6;
+  --sidebar-divider: rgba(148, 163, 184, 0.12);
+  --sidebar-logo-text: #ffffff;
+  --sidebar-z: 200;
+
+  /* Top header bar */
+  --header-height: 60px;
+  --header-bg: #ffffff;
+  --header-border: #e2e8f0;
+  --header-z: 100;
+
+  /* Content */
+  --content-bg: #f8fafc;
+  --content-padding: 1.5rem 2rem;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --nav-font-size: 0.875rem;
+  --nav-font-weight: 500;
+  --nav-icon-size: 20px;
+
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+
+  /* Colors */
+  --color-primary: #2563eb;
+  --color-primary-light: #eff6ff;
+  --color-text: #1e293b;
+  --color-text-dark: #0f172a;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-border-hover: #cbd5e1;
+  --color-surface: #ffffff;
+  --color-bg: #f8fafc;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -169,111 +302,313 @@ export default {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: #f8fafc;
-  color: #1e293b;
+  font-family: var(--font-family);
+  background: var(--color-bg);
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-.app {
+/* ===== Layout Shell ===== */
+.app-layout {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
 }
 
-.top-nav {
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-  position: sticky;
+.sidebar {
+  position: fixed;
   top: 0;
-  z-index: 100;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  z-index: var(--sidebar-z);
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: width var(--transition-slow), transform var(--transition-slow);
 }
 
-.nav-container {
-  max-width: 1600px;
-  margin: 0 auto;
+.main-area {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--content-bg);
+  transition: margin-left var(--transition-slow);
+}
+
+/* ===== Sidebar Header (Logo) ===== */
+.sidebar-header {
+  padding: var(--space-6) var(--space-5);
+  border-bottom: 1px solid var(--sidebar-divider);
+}
+
+.sidebar-logo {
   display: flex;
   align-items: center;
-  padding: 0 2rem;
-  height: 70px;
+  gap: var(--space-3);
 }
 
-.nav-container > .nav-tabs {
-  margin-left: auto;
-  margin-right: 1rem;
-}
-
-.nav-container > .language-switcher {
-  margin-right: 1rem;
-}
-
-.logo {
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--color-primary);
+  border-radius: var(--radius-md);
   display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-}
-
-.logo h1 {
-  font-size: 1.375rem;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
   font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.025em;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
-.subtitle {
-  font-size: 0.813rem;
-  color: #64748b;
-  font-weight: 400;
-  padding-left: 0.75rem;
-  border-left: 1px solid #e2e8f0;
+.sidebar-logo h1 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sidebar-logo-text);
+  line-height: 1.2;
 }
 
-.nav-tabs {
+.logo-subtitle {
+  font-size: 0.7rem;
+  color: var(--sidebar-text);
+  letter-spacing: 0.02em;
+}
+
+.logo-text {
+  overflow: hidden;
+}
+
+/* ===== Sidebar Navigation ===== */
+.sidebar-nav {
+  flex: 1;
+  padding: var(--space-4) 0;
   display: flex;
-  gap: 0.25rem;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
-.nav-tabs a {
-  padding: 0.625rem 1.25rem;
-  color: #64748b;
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  margin: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--sidebar-text);
   text-decoration: none;
-  font-weight: 500;
-  font-size: 0.938rem;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  font-size: var(--nav-font-size);
+  font-weight: var(--nav-font-weight);
+  transition: all var(--transition-fast);
   position: relative;
 }
 
-.nav-tabs a:hover {
-  color: #0f172a;
-  background: #f1f5f9;
+.nav-icon {
+  width: var(--nav-icon-size);
+  height: var(--nav-icon-size);
+  flex-shrink: 0;
 }
 
-.nav-tabs a.active {
-  color: #2563eb;
-  background: #eff6ff;
+.nav-item:hover {
+  color: var(--sidebar-text-hover);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.nav-tabs a.active::after {
+.nav-item.router-link-exact-active,
+.nav-item.active {
+  color: var(--sidebar-text-active);
+  background: var(--sidebar-active-bg);
+}
+
+.nav-item.router-link-exact-active::before,
+.nav-item.active::before {
   content: '';
   position: absolute;
-  bottom: -1px;
   left: 0;
-  right: 0;
-  height: 2px;
-  background: #2563eb;
+  top: var(--space-2);
+  bottom: var(--space-2);
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--sidebar-active-border);
 }
 
+.nav-label {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ===== Sidebar Footer ===== */
+.sidebar-footer {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--sidebar-divider);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--sidebar-divider);
+}
+
+/* ===== Top Header ===== */
+.top-header {
+  position: sticky;
+  top: 0;
+  height: var(--header-height);
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  z-index: var(--header-z);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-8);
+  flex-shrink: 0;
+}
+
+.header-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+}
+
+.hamburger-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin-right: var(--space-3);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+}
+
+.hamburger-btn:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.hamburger-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ===== Main Content ===== */
 .main-content {
   flex: 1;
-  max-width: 1600px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 1.5rem 2rem;
+  padding: var(--content-padding);
 }
 
+/* ===== Sidebar Backdrop (mobile) ===== */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 199;
+}
+
+/* ===== Responsive: Tablet (collapsed sidebar) ===== */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: var(--sidebar-collapsed-width);
+  }
+
+  .main-area {
+    margin-left: var(--sidebar-collapsed-width);
+  }
+
+  .nav-label,
+  .logo-text,
+  .logo-subtitle {
+    display: none;
+  }
+
+  .nav-item {
+    justify-content: center;
+    padding: var(--space-3);
+    margin: 0 var(--space-2);
+  }
+
+  .sidebar-header {
+    padding: var(--space-4) var(--space-3);
+    display: flex;
+    justify-content: center;
+  }
+
+  .sidebar-logo {
+    justify-content: center;
+  }
+
+  .sidebar-footer {
+    padding: var(--space-4) var(--space-3);
+    align-items: center;
+  }
+}
+
+/* ===== Responsive: Mobile (off-screen sidebar) ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    width: var(--sidebar-width);
+    transform: translateX(-100%);
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .main-area {
+    margin-left: 0;
+  }
+
+  .hamburger-btn {
+    display: flex;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+  }
+
+  .nav-label,
+  .logo-text,
+  .logo-subtitle {
+    display: block;
+  }
+
+  .nav-item {
+    justify-content: flex-start;
+    padding: var(--space-3) var(--space-5);
+    margin: 0 var(--space-3);
+  }
+
+  .sidebar-header {
+    padding: var(--space-6) var(--space-5);
+    display: block;
+    justify-content: initial;
+  }
+
+  .sidebar-logo {
+    justify-content: flex-start;
+  }
+
+  .sidebar-footer {
+    padding: var(--space-4) var(--space-5);
+    align-items: stretch;
+  }
+}
+
+/* ===== Shared Utility Styles (preserved) ===== */
 .page-header {
   margin-bottom: 1.5rem;
 }
